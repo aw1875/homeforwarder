@@ -34,6 +34,8 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
           echo "APP_NAME=$APP_NAME" >> $GITHUB_OUTPUT
           echo "DEB_FILENAME=${APP_NAME}_${VERSION}_${{ matrix.architecture }}.deb" >> $GITHUB_OUTPUT
+          echo "LAST_TAG_COMMIT_HASH=$(git rev-list --tags --max-count=1)" >> $GITHUB_OUTPUT
+          echo "COMMIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
       - name: Build project
         run: ./scripts/build.sh ${{ matrix.architecture }}
@@ -50,6 +52,8 @@ jobs:
       version: ${{ steps.vars.outputs.VERSION }}
       app_name: ${{ steps.vars.outputs.APP_NAME }}
       deb_filename: ${{ steps.vars.outputs.DEB_FILENAME }}
+      last_tag_commit_hash: ${{ steps.vars.outputs.LAST_TAG_COMMIT_HASH }}
+      commit_hash: ${{ steps.vars.outputs.COMMIT_HASH }}
 
   release:
     needs: build
@@ -105,6 +109,9 @@ jobs:
           name: ${{ needs.build.outputs.app_name }} v${{ needs.build.outputs.version }}
           tag_name: v${{ needs.build.outputs.version }}
           body: |
+            ## Changes
+            ${{ needs.build.outputs.last_tag_commit_hash }}...${{ needs.build.outputs.commit_hash }}
+
             ### SHA256 Checksums
             ```
             ${{ steps.sha256_amd.outputs.SHA256 }}
