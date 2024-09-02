@@ -79,7 +79,13 @@ If there are any issues, you can check the logs using the following command:
 sudo journalctl -u homeforwarder
 ```
 
+## Credits
+
+This project was inspired by a video from [Hoff][hoff-video-link] ([GitHub][hoff-github-link]). The video is a great watch and I highly recommend it.
+
 [ssh-key-link]: https://www.digitalocean.com/community/tutorials/how-to-configure-ssh-key-based-authentication-on-a-linux-server
 [ssh-config-link]: https://linuxize.com/post/using-the-ssh-config-file
 [hosts-file-link]: https://linuxhandbook.com/etc-hosts-file
 [zig-link]: https://ziglang.org
+[hoff-video-link]:  https://www.youtube.com/watch?v=aUBeJyfg9GQ
+[hoff-github-link]: https://github.com/hoff-dot-world
