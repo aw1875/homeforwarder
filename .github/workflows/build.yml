@@ -103,7 +103,7 @@ jobs:
         with:
           files: release/*
           name: ${{ needs.build.outputs.app_name }} v${{ needs.build.outputs.version }}
-          tag_name: ${{ needs.build.outputs.version }}
+          tag_name: v${{ needs.build.outputs.version }}
           body: |
             ### SHA256 Checksums
             ```
