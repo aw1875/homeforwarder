@@ -4,3 +4,7 @@ zig-out
 
 # Config files
 config.json
+
+# Build files
+dist
+debs

@@ -1,0 +1,13 @@
+{
+    "timeout": 5,
+    "services": [
+        {
+            "name": "MySQL",
+            "hostname": "vw",
+            "connect_port": 3306,
+            "forward_port": 3306,
+            "protocol": 0
+        }
+    ],
+    "forward_host": "vps1"
+}

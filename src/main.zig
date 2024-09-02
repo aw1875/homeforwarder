@@ -62,7 +62,12 @@ pub fn main() !void {
 
     console.allocator = allocator;
 
-    const config_file = std.fs.cwd().openFile("config.json", .{}) catch |err| {
+    // TODO: Figure out why cwd has issues when running as a service
+    var path: [std.fs.max_path_bytes]u8 = undefined;
+    _ = try std.posix.getcwd(&path);
+
+    // TODO: Make this dynamic after fixing the above issue
+    const config_file = std.fs.openFileAbsolute("/opt/homeforwarder/config.json", .{}) catch |err| {
         switch (err) {
             error.FileNotFound => console.@"error"("Config file not found"),
             else => console.errorf("Failed to open config file: {}", .{err}),
@@ -91,7 +96,7 @@ pub fn main() !void {
     var threads: std.ArrayList(std.Thread) = std.ArrayList(std.Thread).init(allocator);
     defer threads.deinit();
 
-    console.printf("{s}", .{Color.formatBackground(allocator, Color.BG.Yellow, Color.FG.Black, " Homeforward - SSH Forwarder ", true)});
+    console.printf("{s}", .{Color.formatBackground(allocator, Color.BG.Yellow, Color.FG.Black, " Homeforwarder - SSH Forwarder ", true)});
     console.infof("Watching {s} services", .{Color.formatForeground(
         allocator,
         Color.FG.Green,
