@@ -38,7 +38,7 @@ set -e
 
 chown -R root:root /opt/${APP_NAME}
 ln -sf /opt/${APP_NAME}/${APP_NAME} /usr/local/bin/${APP_NAME}
-sed -i "s/%%USER%%/$(logname)/g" /lib/systemd/system/${APP_NAME}.service
+sed -i "s/%%USER%%/\$(logname)/g" /lib/systemd/system/${APP_NAME}.service
 
 systemctl daemon-reload
 EOF

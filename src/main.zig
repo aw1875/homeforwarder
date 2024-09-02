@@ -37,7 +37,7 @@ fn startService(allocator: std.mem.Allocator, service: Config.Service, forward_h
 
                 var process = std.process.Child.init(&args, allocator);
                 process.spawn() catch |err| {
-                    console.errorf("Coudln't spawn process {s}: {}", .{ service.name, err });
+                    console.errorf("Couldn't spawn process {s}: {}", .{ service.name, err });
                     Common.sleep(5000);
                     continue;
                 };
