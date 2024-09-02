@@ -56,6 +56,7 @@ To understand the fields in the config file, see the following descriptions:
   - `connect_port`: Port of service running on host system 
   - `forward_port`: Port of service to forward to forwarded system
   - `protocol`: Protocol of service - TCP(0) or UNIX(1). Currently only TCP is supported.
+- `forward_host`: Hostname of the system you want to forward to. This is the system that the service will be forwarded to and should be the name that is setup in your SSH config file.
 
 ## Running
 
