@@ -3,7 +3,7 @@
     "services": [
         {
             "name": "MySQL",
-            "hostname": "vw",
+            "hostname": "sql",
             "connect_port": 3306,
             "forward_port": 3306,
             "protocol": 0
