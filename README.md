@@ -1,7 +1,13 @@
 # Homeforwarder
 
 Simple service to expose your homelab services to the internet using SSH tunnels.
-<div align="center"><video src="./media/homeforwarder.mp4" /></div>
+<div align="center">
+  
+
+https://github.com/user-attachments/assets/92c276bd-a600-4be3-8c53-32f9167b8c3e
+
+
+</div>
 
 ## Prerequisites
 
