@@ -11,7 +11,7 @@ https://github.com/user-attachments/assets/92c276bd-a600-4be3-8c53-32f9167b8c3e
 
 ## Prerequisites
 
-To use Home Forwarder at its current state, you need to have the following completed:
+To use Homeforwarder at its current state, you need to have the following completed:
 - Setup SSH so that connections are key-based ([guide][ssh-key-link]).
 - Setup your SSH config file to include the necessary information for the servers you want to forward to ([guide][ssh-config-link]).
 
@@ -20,7 +20,7 @@ Things that may be nice to have:
 
 ## Building
 
-Pre-built binaries are not provided at this time (coming in the future though!). To build Home Forwarder, you need to have [Zig][zig-link] installed.
+Pre-built binaries are not provided at this time (coming in the future though). To build Homeforwarder, you need to have [Zig][zig-link] installed.
 This was built on Zig 0.14.0-dev but 0.13.0+ should work as well.
 Once you have Zig installed, you can clone the repository using `git clone <repo>` and then running the build script located in the scripts folder and passing in the desired architecture. 
 Currently only `arm64` and `amd64` are supported.
