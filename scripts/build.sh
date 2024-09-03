@@ -6,15 +6,15 @@ set -e
 
 # Set variables
 ARCH=$1
-TARGET=$([[ "${ARCH}" == "x86_64" ]] && echo "x86_64-linux" || echo "aarch64-linux")
+TARGET=$([[ "${ARCH}" == "amd64" ]] && echo "x86_64-linux" || echo "aarch64-linux")
 VERSION=$(cat build.zig.zon | grep '.version' | sed 's/.*= "\(.*\)",/\1/')
 APP_NAME=$(cat build.zig.zon | grep '.name' | sed 's/.*= "\(.*\)",/\1/')
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 APP_DIR="${SCRIPT_DIR}/../dist/opt/${APP_NAME}"
 
 
-# Clean up dist directory
-rm -rf "${SCRIPT_DIR}/../dist"
+# Clean up old files
+rm -rf "${SCRIPT_DIR}/../dist" "${SCRIPT_DIR}/../debs"
 
 # Create directories
 mkdir -p "${SCRIPT_DIR}/../dist/DEBIAN" "${SCRIPT_DIR}/../dist/lib/systemd/system" "${APP_DIR}"
@@ -63,10 +63,15 @@ After=network.target
 Type=simple
 User=%%USER%%
 ExecStart=/opt/${APP_NAME}/${APP_NAME}
+WorkingDirectory=/opt/${APP_NAME}
 Restart=always
 
 [Install]
 WantedBy=multi-user.target
+EOF
+
+cat > "${SCRIPT_DIR}/../dist/DEBIAN/conffiles" <<EOF
+/opt/${APP_NAME}/config.json
 EOF
 
 cat > "${APP_DIR}/config.json" <<EOF
