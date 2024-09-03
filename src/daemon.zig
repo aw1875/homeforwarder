@@ -8,6 +8,8 @@ const DateTime = @import("utils/datetime.zig");
 const Color = Common.Color;
 const Daemon = @This();
 
+pub const DaemonError = error{NoServices} || std.fmt.AllocPrintError || std.Thread.SpawnError;
+
 allocator: std.mem.Allocator,
 config: *Config,
 console: Console,
@@ -52,16 +54,26 @@ pub fn deinit(self: Daemon) void {
     self.config.deinit(self.allocator);
 }
 
-pub fn startDaemon(self: Daemon) !void {
+pub fn startDaemon(self: Daemon) DaemonError!void {
     var threads: std.ArrayList(std.Thread) = std.ArrayList(std.Thread).init(self.allocator);
     defer threads.deinit();
 
     self.console.printf("{s}", .{Color.formatBackground(self.allocator, Color.BG.Yellow, Color.FG.Black, " Homeforwarder - SSH Forwarder ", true)});
-    self.console.infof("Watching {s} services", .{Color.formatForeground(
-        self.allocator,
-        Color.FG.Green,
-        try std.fmt.allocPrint(self.allocator, "{d}", .{self.config.services.len}),
-    )});
+
+    if (self.config.services.len == 0) {
+        self.console.warn("No services to watch, exiting");
+
+        return DaemonError.NoServices;
+    }
+
+    self.console.infof("Watching {s} {s}", .{
+        Color.formatForeground(
+            self.allocator,
+            Color.FG.Green,
+            try std.fmt.allocPrint(self.allocator, "{d}", .{self.config.services.len}),
+        ),
+        if (self.config.services.len == 1) "service" else "services",
+    });
 
     for (self.config.services) |service| {
         const thread = try std.Thread.spawn(.{ .allocator = self.allocator }, runService, .{ self, service });

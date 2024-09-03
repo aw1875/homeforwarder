@@ -1,6 +1,7 @@
 const std = @import("std");
 
 const Daemon = @import("daemon.zig");
+const DaemonError = Daemon.DaemonError;
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -10,5 +11,10 @@ pub fn main() !void {
     var daemon = try Daemon.init(allocator);
     defer daemon.deinit();
 
-    try daemon.startDaemon();
+    daemon.startDaemon() catch |err| {
+        switch (err) {
+            DaemonError.NoServices => std.process.exit(0),
+            else => return err,
+        }
+    };
 }
