@@ -111,7 +111,7 @@ fn runService(self: Daemon, service: Config.Service) !void {
             .UNIX => return error.Unimplemented,
         }
 
-        self.console.warnf("Daemon {s} has exited, restarting at {s}", .{
+        self.console.warnf("Service {s} has exited, restarting at {s}", .{
             Color.formatForeground(self.allocator, Color.FG.Magenta, service.name),
             Color.formatForeground(self.allocator, Color.FG.Yellow, DateTime.addSeconds(self.allocator, 5)),
         });
