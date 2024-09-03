@@ -29,13 +29,18 @@ jobs:
       - name: Setup Variables
         id: vars
         run: |
+          # Get the version and app name from the build.zig.zon file
           VERSION=$(grep '.version' build.zig.zon | sed 's/.*= "\(.*\)",/\1/')
           APP_NAME=$(grep '.name' build.zig.zon | sed 's/.*= "\(.*\)",/\1/')
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
           echo "APP_NAME=$APP_NAME" >> $GITHUB_OUTPUT
           echo "DEB_FILENAME=${APP_NAME}_${VERSION}_${{ matrix.architecture }}.deb" >> $GITHUB_OUTPUT
-          echo "LAST_TAG_COMMIT_HASH=$(git rev-list --tags --max-count=1)" >> $GITHUB_OUTPUT
-          echo "COMMIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+          # Get the commit hash of the last tag and the current tag
+          CURRENT_TAG=$(git describe --tags --abbrev=0)
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 --tags $(git rev-list -n 1 $CURRENT_TAG^))
+          echo "LAST_TAG_COMMIT_HASH=$(git rev-parse --short $(git rev-list -n 1 $PREVIOUS_TAG))" >> $GITHUB_OUTPUT
+          echo "COMMIT_HASH=$(git rev-parse --short $(git rev-list -n 1 $CURRENT_TAG))" >> $GITHUB_OUTPUT
 
       - name: Build project
         run: ./scripts/build.sh ${{ matrix.architecture }}
