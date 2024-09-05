@@ -112,11 +112,27 @@ fn runService(self: Daemon, service: Config.Service) !void {
                 };
 
                 var process = std.process.Child.init(&args, self.allocator);
+
+                // Don't care about stdout, but we want to handle stderr more gracefully
+                process.stdout_behavior = .Ignore;
+                process.stderr_behavior = .Pipe;
+
                 process.spawn() catch |err| {
                     self.console.errorf("Couldn't spawn process {s}: {}", .{ service.name, err });
                     Common.sleep(5000);
                     continue;
                 };
+
+                var ebuf: [1024]u8 = undefined;
+                if (process.stderr) |stderr| {
+                    const reader = stderr.reader();
+                    const size = try reader.read(&ebuf);
+
+                    self.console.errorf("Service {s} received error: {s}", .{
+                        Color.formatForeground(self.allocator, Color.FG.Magenta, service.name),
+                        Color.formatForeground(self.allocator, Color.FG.Red, std.mem.trim(u8, ebuf[0..size], "\n")),
+                    });
+                }
 
                 _ = try process.wait();
             },

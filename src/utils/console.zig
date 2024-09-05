@@ -20,10 +20,10 @@ pub const LogLevel = enum(usize) {
 
     fn getString(self: LogLevel) []const u8 {
         return switch (self) {
-            .Debug => "[DEBUG]",
+            .Debug => "[DEBG]",
             .Info => "[INFO]",
             .Warn => "[WARN]",
-            .Error => "[ERROR]",
+            .Error => "[EROR]",
         };
     }
 };
