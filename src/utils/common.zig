@@ -53,3 +53,10 @@ pub const Color = struct {
 pub fn sleep(ms: u64) void {
     std.time.sleep(std.time.ns_per_ms * ms);
 }
+
+pub fn minify(allocator: std.mem.Allocator, input: []const u8) []u8 {
+    var temp_buf: [1024]u8 = undefined;
+
+    _ = std.mem.replace(u8, input, "\n", "", &temp_buf);
+    return std.mem.replaceOwned(u8, allocator, &temp_buf, " ", "") catch unreachable;
+}

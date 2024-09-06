@@ -51,7 +51,7 @@ pub fn toISOString(self: DateTime, allocator: std.mem.Allocator) []u8 {
 
     const owned_buff = allocator.alignedAlloc(u8, null, buff.len) catch @panic("Failed to allocate memory");
     @memcpy(owned_buff, buff); // Copy the stack buffer to the heap buffer
-    @memset(buff, undefined); // Zero out the stack buffer
+    allocator.free(buff); // Free the stack buffer
 
     return owned_buff;
 }

@@ -18,6 +18,10 @@ pub fn init(allocator: std.mem.Allocator) !Daemon {
     var console = Console{ .allocator = allocator };
 
     const config_file = std.fs.cwd().openFileZ("config.json", .{}) catch |err| {
+        var cwd: [std.fs.max_path_bytes]u8 = undefined;
+        _ = std.posix.getcwd(&cwd) catch unreachable;
+        console.logf("Failed to find config file in path: {s} with error: {}", .{ cwd, err });
+
         switch (err) {
             error.FileNotFound => console.@"error"("Config file not found"),
             else => console.errorf("Failed to open config file: {}", .{err}),
@@ -31,6 +35,10 @@ pub fn init(allocator: std.mem.Allocator) !Daemon {
     defer allocator.free(config_source);
 
     var parsed_config = std.json.parseFromSlice(Config, allocator, config_source, .{}) catch |err| {
+        const minified_json = Common.minify(allocator, config_source);
+        defer allocator.free(minified_json);
+        console.logf("Failed to parse config: {s}", .{minified_json});
+
         switch (err) {
             error.MissingField => console.@"error"("Failed to parse config: Missing field"),
             error.DuplicateField, error.UnknownField => console.@"error"("Failed to parse config: Duplicate or unknown field"),

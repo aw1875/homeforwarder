@@ -29,7 +29,7 @@ pub const LogLevel = enum(usize) {
 };
 
 const Self = @This();
-allocator: ?std.mem.Allocator = null,
+allocator: std.mem.Allocator,
 
 fn writeLog(
     self: Self,
@@ -48,14 +48,13 @@ fn writeLog(
     var bw = std.io.bufferedWriter(file.writer());
     const output = bw.writer();
 
-    if (self.allocator == null) {
-        output.print("{s} Missing allocator{s}\n", .{ LogLevel.Error.getString(), Color.Clear }) catch unreachable;
-        bw.flush() catch unreachable;
+    const timestamp = DateTime.now(self.allocator);
+    defer self.allocator.free(timestamp);
 
-        std.process.exit(1);
-    }
+    const colored_output = Color.formatForeground(self.allocator, log_level.getColor(), log_level.getString());
+    defer self.allocator.free(colored_output);
 
-    output.print("{s} ({s}) ", .{ Color.formatForeground(self.allocator.?, log_level.getColor(), log_level.getString()), DateTime.now(self.allocator.?) }) catch unreachable;
+    output.print("{s} ({s}) ", .{ colored_output, timestamp }) catch unreachable;
     output.print(message, args) catch unreachable;
     output.print("\n", .{}) catch unreachable;
 
@@ -63,7 +62,7 @@ fn writeLog(
 }
 
 fn writeMessage(
-    self: Self,
+    _: Self,
     comptime message: []const u8,
     args: anytype,
 ) void {
@@ -74,13 +73,6 @@ fn writeMessage(
 
     var bw = std.io.bufferedWriter(file.writer());
     const output = bw.writer();
-
-    if (self.allocator == null) {
-        output.print("{s} Missing allocator{s}\n", .{ LogLevel.Error.getString(), Color.Clear }) catch unreachable;
-        bw.flush() catch unreachable;
-
-        std.process.exit(1);
-    }
 
     output.print(message, args) catch unreachable;
     output.print("\n", .{}) catch unreachable;
@@ -97,11 +89,15 @@ pub fn printf(self: Self, comptime message: []const u8, args: anytype) void {
 }
 
 pub fn log(self: Self, comptime message: []const u8) void {
-    self.writeLog(LogLevel.Debug, message, .{});
+    if (std.posix.getenv("DEBUG")) |_| {
+        self.writeLog(LogLevel.Debug, message, .{});
+    }
 }
 
 pub fn logf(self: Self, comptime message: []const u8, args: anytype) void {
-    self.writeLog(LogLevel.Debug, message, args);
+    if (std.posix.getenv("DEBUG")) |_| {
+        self.writeLog(LogLevel.Debug, message, args);
+    }
 }
 
 pub fn info(self: Self, comptime message: []const u8) void {
