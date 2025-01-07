@@ -66,7 +66,10 @@ pub fn startDaemon(self: Daemon) DaemonError!void {
     var threads: std.ArrayList(std.Thread) = std.ArrayList(std.Thread).init(self.allocator);
     defer threads.deinit();
 
-    self.console.printf("{s}", .{Color.formatBackground(self.allocator, Color.BG.Yellow, Color.FG.Black, " Homeforwarder - SSH Forwarder ", true)});
+    const colored_start_message = Color.formatBackground(self.allocator, Color.BG.Yellow, Color.FG.Black, " Homeforwarder - SSH Forwarder ", true);
+    defer self.allocator.free(colored_start_message);
+
+    self.console.printf("{s}", .{colored_start_message});
 
     if (self.config.services.len == 0) {
         self.console.warn("No services to watch, exiting");
@@ -74,12 +77,16 @@ pub fn startDaemon(self: Daemon) DaemonError!void {
         return DaemonError.NoServices;
     }
 
+    const formatted_services = try std.fmt.allocPrint(self.allocator, "{d}", .{self.config.services.len});
+    const colored_services = Color.formatForeground(self.allocator, Color.FG.Green, formatted_services);
+
+    defer {
+        self.allocator.free(formatted_services);
+        self.allocator.free(colored_services);
+    }
+
     self.console.infof("Watching {s} {s}", .{
-        Color.formatForeground(
-            self.allocator,
-            Color.FG.Green,
-            try std.fmt.allocPrint(self.allocator, "{d}", .{self.config.services.len}),
-        ),
+        colored_services,
         if (self.config.services.len == 1) "service" else "services",
     });
 
@@ -94,14 +101,30 @@ pub fn startDaemon(self: Daemon) DaemonError!void {
 
 fn runService(self: Daemon, service: Config.Service) !void {
     while (true) {
+        var colored_service_name = Color.formatForeground(self.allocator, Color.FG.Magenta, service.name);
+        const colored_protocol = Color.formatForeground(self.allocator, Color.FG.Yellow, @tagName(service.protocol));
+
+        defer {
+            self.allocator.free(colored_service_name);
+            self.allocator.free(colored_protocol);
+        }
+
         self.console.infof("Forwarding service {s} from {s}:{d} to {s}:{d} via {s}", .{
-            Color.formatForeground(self.allocator, Color.FG.Magenta, service.name),
+            colored_service_name,
             service.hostname,
             service.connect_port,
             self.config.forward_host,
             service.forward_port,
-            Color.formatForeground(self.allocator, Color.FG.Yellow, @tagName(service.protocol)),
+            colored_protocol,
         });
+
+        const formatted_timeout = try std.fmt.allocPrint(self.allocator, "ServerAliveInterval={d}", .{self.config.timeout});
+        const formatted_forwarding_info = try std.fmt.allocPrint(self.allocator, "{d}:{s}:{d}", .{ service.forward_port, service.hostname, service.connect_port });
+
+        defer {
+            self.allocator.free(formatted_timeout);
+            self.allocator.free(formatted_forwarding_info);
+        }
 
         switch (service.protocol) {
             .TCP => {
@@ -111,11 +134,11 @@ fn runService(self: Daemon, service: Config.Service) !void {
                     "-o",
                     "ExitOnForwardFailure=yes",
                     "-o",
-                    try std.fmt.allocPrint(self.allocator, "ServerAliveInterval={d}", .{self.config.timeout}),
+                    formatted_timeout,
                     "-o",
                     "ServerAliveCountMax=1",
                     "-R",
-                    try std.fmt.allocPrint(self.allocator, "{d}:{s}:{d}", .{ service.forward_port, service.hostname, service.connect_port }),
+                    formatted_forwarding_info,
                     self.config.forward_host,
                 };
 
@@ -136,9 +159,17 @@ fn runService(self: Daemon, service: Config.Service) !void {
                     const reader = stderr.reader();
                     const size = try reader.read(&ebuf);
 
+                    colored_service_name = Color.formatForeground(self.allocator, Color.FG.Magenta, service.name);
+                    const colored_error = Color.formatForeground(self.allocator, Color.FG.Red, std.mem.trim(u8, ebuf[0..size], "\n"));
+
+                    defer {
+                        self.allocator.free(colored_service_name);
+                        self.allocator.free(colored_error);
+                    }
+
                     self.console.errorf("Service {s} received error: {s}", .{
-                        Color.formatForeground(self.allocator, Color.FG.Magenta, service.name),
-                        Color.formatForeground(self.allocator, Color.FG.Red, std.mem.trim(u8, ebuf[0..size], "\n")),
+                        colored_service_name,
+                        colored_error,
                     });
                 }
 
@@ -147,9 +178,17 @@ fn runService(self: Daemon, service: Config.Service) !void {
             .UNIX => return error.Unimplemented,
         }
 
+        colored_service_name = Color.formatForeground(self.allocator, Color.FG.Magenta, service.name);
+        const colored_sleep_time = Color.formatForeground(self.allocator, Color.FG.Yellow, DateTime.addSeconds(self.allocator, 5));
+
+        defer {
+            self.allocator.free(colored_service_name);
+            self.allocator.free(colored_sleep_time);
+        }
+
         self.console.warnf("Service {s} has exited, restarting at {s}", .{
-            Color.formatForeground(self.allocator, Color.FG.Magenta, service.name),
-            Color.formatForeground(self.allocator, Color.FG.Yellow, DateTime.addSeconds(self.allocator, 5)),
+            colored_service_name,
+            colored_sleep_time,
         });
         Common.sleep(5000);
     }
