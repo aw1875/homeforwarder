@@ -162,10 +162,7 @@ fn runService(self: Daemon, service: Config.Service) !void {
                     colored_service_name = Color.formatForeground(self.allocator, Color.FG.Magenta, service.name);
                     const colored_error = Color.formatForeground(self.allocator, Color.FG.Red, std.mem.trim(u8, ebuf[0..size], "\n"));
 
-                    defer {
-                        self.allocator.free(colored_service_name);
-                        self.allocator.free(colored_error);
-                    }
+                    defer self.allocator.free(colored_error);
 
                     self.console.errorf("Service {s} received error: {s}", .{
                         colored_service_name,
@@ -181,10 +178,7 @@ fn runService(self: Daemon, service: Config.Service) !void {
         colored_service_name = Color.formatForeground(self.allocator, Color.FG.Magenta, service.name);
         const colored_sleep_time = Color.formatForeground(self.allocator, Color.FG.Yellow, DateTime.addSeconds(self.allocator, 5));
 
-        defer {
-            self.allocator.free(colored_service_name);
-            self.allocator.free(colored_sleep_time);
-        }
+        defer self.allocator.free(colored_sleep_time);
 
         self.console.warnf("Service {s} has exited, restarting at {s}", .{
             colored_service_name,
